@@ -1,0 +1,97 @@
+Programming Languages (Coursera / University of Washington), 2013
+Assignment 5
+
+Overview: This homework has to do with mupl (a Made Up Programming Language). mupl programs
+are written directly in Racket by using the constructors defined by the structs dened at the beginning of
+hw5.rkt.
+
+Problems:
+
+1. Warm-Up:
+(a) Write a Racket function racketlist->mupllist that takes a Racket list (presumably of mupl
+values but that will not aect your solution) and produces an analogous mupl list with the same
+elements in the same order.
+(b) Write a Racket function mupllist->racketlist that takes a mupl list (presumably of mupl
+values but that will not aect your solution) and produces an analogous Racket list (of mupl
+values) with the same elements in the same order.
+
+2. Implementing the mupl Language: Write a mupl interpreter, i.e., a Racket function eval-exp
+that takes a mupl expression e and either returns the mupl value that e evaluates to under the empty
+environment or calls Racket's error if evaluation encounters a run-time mupl type error or unbound
+mupl variable.
+A mupl expression is evaluated under an environment (for evaluating variables, as usual). In your
+interpreter, use a Racket list of Racket pairs to represent this environment (which is initially empty)
+so that you can use without modication the provided envlookup function. Here is a description of
+the semantics of mupl expressions:
+ All values (including closures) evaluate to themselves. For example, (eval-exp (int 17)) would
+return (int 17), not 17.
+ A variable evaluates to the value associated with it in the environment.
+ An addition evaluates its subexpressions and assuming they both produce integers, produces the
+integer that is their sum. (Note this case is done for you to get you pointed in the right direction.)
+ Functions are lexically scoped: A function evaluates to a closure holding the function and the
+current environment.
+ An ifgreater evaluates its rst two subexpressions to values v1 and v2 respectively. If both
+values are integers, it evaluates its third subexpression if v1 is a strictly greater integer than v2
+else it evaluates its fourth subexpression.
+ An mlet expression evaluates its rst expression to a value v. Then it evaluates the second
+expression to a value, in an environment extended to map the name in the mlet expression to v.
+ A call evaluates its rst and second subexpressions to values. If the rst is not a closure, it is an
+error. Else, it evaluates the closure's function's body in the closure's environment extended to
+map the function's name to the closure (unless the name eld is #f) and the function's argument
+to the result of the second subexpression.
+ A pair expression evaluates its two subexpressions and produces a (new) pair holding the results.
+ A fst expression evaluates its subexpression. If the result for the subexpression is a pair, then the
+result for the fst expression is the e1 eld in the pair.
+ A snd expression evaluates its subexpression. If the result for the subexpression is a pair, then
+the result for the snd expression is the e2 eld in the pair.
+ An isaunit expression evaluates its subexpression. If the result is unit, then the result for the
+isunit expression is the mupl integer 1, else the result is the mupl integer 0.
+Hint: The call case is the most complicated. In the sample solution, no case is more than 12 lines
+and several are 1 line.
+
+3. Expanding the Language: mupl is a small language, but we can write Racket functions that act like
+mupl macros so that users of these functions feel like mupl is larger. The Racket functions produce
+mupl expressions that could then be put inside larger mupl expressions or passed to eval-exp. In
+implementing these Racket functions, do not use closure (which is used only internally in eval-exp).
+Also do not use eval-exp (we are creating a program, not running it).
+(a) Write a Racket function ifaunit that takes three mupl expressions e1, e2, and e3. It returns a
+mupl expression that when run evaluates e1 and if the result is mupl's aunit then it evaluates e2
+and that is the overall result, else it evaluates e3 and that is the overall result. Sample solution:
+1 line.
+(b) Write a Racket function mlet* that takes a Racket list of Racket pairs '((s1 . e1) . . . (si . ei)
+. . . (sn . en)) and a nal mupl expression en+1. In each pair, assume si is a Racket string and
+ei is a mupl expression. mlet* returns a mupl expression whose value is en+1 evaluated in an
+environment where each si is a variable bound to the result of evaluating the corresponding ei
+for 1  i  n. The bindings are done sequentially, so that each ei is evaluated in an environment
+where s1 through si??1 have been previously bound to the values e1 through ei??1.
+(c) Write a Racket function ifeq that takes four mupl expressions e1, e2, e3, and e4 and returns
+a mupl expression that acts like ifgreater except e3 is evaluated if and only if e1 and e2 are
+equal integers. Assume none of the arguments to ifeq use the mupl variables _x or _y. Use this
+assumption so that when an expression returned from ifeq is evaluated, e1 and e2 are evaluated
+exactly once each.
+
+4. Using the Language: We can write mupl expressions directly in Racket using the constructors for
+the structs and (for convenience) the functions we wrote in the previous problem.
+(a) Bind to the Racket variable mupl-map a mupl function that acts like map (as we used extensively
+in ML). Your function should be curried: it should take a mupl function and return a mupl
+function that takes a mupl list and applies the function to every element of the list returning a
+new mupl list. Recall a mupl list is aunit or a pair where the second component is a mupl list.
+(b) Bind to the Racket variable mupl-mapAddN a mupl function that takes an mupl integer i and
+returns a mupl function that takes a mupl list of mupl integers and returns a new mupl list of
+mupl integers that adds i to every element of the list. Use mupl-map (a use of mlet is given to
+you to make this easier).
+
+5. Challenge Problem: Write a second version of eval-exp (bound to eval-exp-c) that builds closures
+with smaller environments: When building a closure, it uses an environment that is like the current
+environment but holds only variables that are free variables in the function part of the closure. (A free
+variable is a variable that appears in the function without being under some shadowing binding for the
+same variable.)
+Avoid computing a function's free variables more than once. Do this by writing a function compute-free-vars
+that takes an expression and returns a dierent expression that uses fun-challenge everywhere in
+place of fun. The new struct fun-challenge (provided to you; do not change it) has a eld freevars
+to store exactly the set of free variables for the function. Store this set as a Racket set of Racket strings.
+(Sets are predened in Racket's standard library; consult the documentation for useful functions such
+as set, set-add, set-member?, set-remove, set-union, and any other functions you wish.)
+You must have a top-level function compute-free-vars that works as just described | storing the
+free variables of each function in the freevars eld | so the grader can test it directly. Then write a
+new \main part" of the interpreter that expects the sort of mupl expression that compute-free-vars that works as just described | storing the free variables of each function in the freevars eld | so the grader can test it directly. Then write a new \main part" of the interpreter that expects the sort of mupl expression that compute-free-vars returns. The case for function denitions is the interesting one.
