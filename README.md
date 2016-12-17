@@ -1,4 +1,4 @@
-Coursera
+Misc
 ========
 
-Assignments from some of Coursera's courses
+Assignments from some courses
